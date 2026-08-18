@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded">
+    <h1 class="display-4">Панель управления рассылками</h1>
+    <p class="lead">Добро пожаловать в сервис автоматизации и информирования клиентов.</p>
+    <hr class="my-4">
+    <div class="row text-center mt-4">
+        <div class="col-md-4">
+            <div class="card border-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Всего рассылок</h5>
+                    <p class="card-text display-6">{{ mailing_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-success">Активных рассылок</h5>
+                    <p class="card-text display-6">{{ active_mailings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-info">Уникальных клиентов</h5>
+                    <p class="card-text display-6">{{ unique_clients }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if not user.is_authenticated %}
+        <p class="mt-4">Для начала работы пройдите авторизацию.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'users:login' %}" role="button">Войти в аккаунт</a>
+    {% else %}
+        <div class="mt-4">
+            <a class="btn btn-primary" href="{% url 'mailing:mailing_list' %}">Перейти к рассылкам</a>
+            <a class="btn btn-outline-secondary" href="{% url 'mailing:client_list' %}">Список клиентов</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

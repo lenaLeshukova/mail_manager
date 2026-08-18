@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Список сообщений для рассылок</h2>
+        <a href="{% url 'mailing:message_create' %}" class="btn btn-primary">Создать сообщение</a>
+    </div>
+    {% if object_list %}
+        <div class="row">
+            {% for msg in object_list %}
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ msg.title }}</h5>
+                            <p class="card-text text-muted">{{ msg.body|truncatechars:100 }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                            <a href="{% url 'mailing:message_update' msg.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+                            <a href="{% url 'mailing:message_delete' msg.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center">У вас пока нет созданных сообщений.</div>
+    {% endif %}
+</div>
+{% endblock %}
