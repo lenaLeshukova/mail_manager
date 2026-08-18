@@ -1,31 +1,29 @@
-from django.core.mail import send_mail
-from django.utils import timezone
-from django.conf import settings
 import logging
-from .models import Log
+from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
-from django.conf import settings
-from mailing.models import Mailing, Log
+from mailing.models import Log
 
 logger = logging.getLogger(__name__)
 
 
 def send_mailing_messages(mailing):
-    """Функция отправки писем для конкретной рассылки."""
+    """Функция отправки писем для конкретной рассылки с batch-сохранением логов."""
     now = timezone.now()
 
-    # Инициация: Проверка временного диапазона
+    # Инициация: Проверка временного диапазона по ТЗ
     if not (mailing.start_time <= now <= mailing.end_time):
-        print(
-            f"Ошибка: Рассылка #{mailing.id} не может быть запущена вне заданного времени!")
+        print(f"Ошибка: Рассылка #{mailing.id} не может быть запущена вне заданного времени!")
         return False
 
     if not mailing.is_active:
         print(f"Ошибка: Рассылка #{mailing.id} отключена менеджером!")
         return False
 
-    # Определение получателей и отправка писем
+    # Список для пакетного сбора логов в оперативной памяти (batch)
+    logs_to_create = []
+
+    # Определение получателей и отправка писем каждому в цикле
     for client in mailing.recipients.all():
         try:
             send_mail(
@@ -35,22 +33,27 @@ def send_mailing_messages(mailing):
                 recipient_list=[client.email],
                 fail_silently=False
             )
-            # Успешный лог
-            Log.objects.create(
+            # Не пишем в БД сразу, а просто добавляем объект лога в список
+            logs_to_create.append(Log(
                 status='Успешно',
                 server_response='Письмо успешно выведено в консоль разработчика.',
                 mailing=mailing
-            )
+            ))
             print(f"Лог: Письмо для {client.email} успешно отправлено.")
 
         except Exception as e:
-            # Лог с ошибкой
-            Log.objects.create(
+            # Если отправка упала — добавляем лог ошибки в список
+            logs_to_create.append(Log(
                 status='Не успешно',
                 server_response=str(e),
                 mailing=mailing
-            )
+            ))
             print(f"Лог: Ошибка отправки для {client.email}: {e}")
+
+    # Сохранение логов в БД происходит через пакетный запрос (batch)
+    if logs_to_create:
+        Log.objects.bulk_create(logs_to_create, batch_size=500)
+        print(f"Пакетная запись (batch) из {len(logs_to_create)} логов успешно сохранена в БД.")
 
     # Динамически пересчитываем статус после отправки
     mailing.update_status()
