@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Управление пользователями сервиса</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover shadow-sm card-body bg-white rounded">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Статус верификации</th>
+                    <th>Статус блокировки</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usr in object_list %}
+                    <tr>
+                        <td>{{ usr.id }}</td>
+                        <td>{{ usr.email }}</td>
+                        <td>
+                            {% if usr.is_verified %}
+                                <span class="badge bg-success">Подтвержден</span>
+                            {% else %}
+                                <span class="badge bg-warning">Ожидает</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usr.is_blocked %}
+                                <span class="badge bg-danger">Заблокирован</span>
+                            {% else %}
+                                <span class="badge bg-success">Активен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usr != user and not usr.is_superuser %}
+                                <a href="{% url 'users:toggle_block' usr.pk %}" 
+                                   class="btn btn-sm {% if usr.is_blocked %}btn-outline-success{% else %}btn-outline-danger{% endif %}">
+                                    {% if usr.is_blocked %}Разблокировать{% else %}Заблокировать{% endif %}
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">Доступ запрещен</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

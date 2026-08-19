@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- Карточка с информацией о рассылке -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Детали рассылки #{{ object.id }}</h4>
+            <span class="badge bg-info fs-6">{{ object.status }}</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Время начала:</strong> {{ object.start_time|date:"d.m.Y H:i" }}</p>
+            <p><strong>Время окончания:</strong> {{ object.end_time|date:"d.m.Y H:i" }}</p>
+            <p><strong>Тема письма:</strong> {{ object.message.title }}</p>
+            <p><strong>Текст сообщения:</strong></p>
+            <div class="p-3 bg-light rounded border mb-3">{{ object.message.body }}</div>
+
+            <p><strong>Получатели:</strong></p>
+            <ul>
+                {% for client in object.recipients.all %}
+                    <li>{{ client.full_name }} ({{ client.email }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <!-- Кнопка ручного запуска по требованию -->
+            <a href="{% url 'mailing:mailing_trigger' object.pk %}" class="btn btn-primary">Запустить сейчас</a>
+            <a href="{% url 'mailing:mailing_update' object.pk %}" class="btn btn-warning">Редактировать</a>
+            <a href="{% url 'mailing:mailing_list' %}" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+
+    <!-- ТАБЛИЦА ЛОГОВ (История попыток отправки) -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">История попыток отправки (Логи)</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if object.log_set.all %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Дата и время попытки</th>
+                                <th>Статус</th>
+                                <th>Ответ почтового сервера</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in object.log_set.all reversed %}
+                                <tr>
+                                    <td>{{ log.attempt_time|date:"d.m.Y H:i:s" }}</td>
+                                    <td>
+                                        {% if log.status == 'Успешно' %}
+                                            <span class="badge bg-success">Успешно</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Не успешно</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code class="text-dark">{{ log.server_response }}</code></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-3 text-center text-muted">
+                    Попыток отправки для этой рассылки еще не зафиксировано.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

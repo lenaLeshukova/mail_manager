@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервис Рассылок</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">Mailing Service</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <!-- Меню разделов (доступно только авторизованным) -->
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'mailing:mailing_list' %}">Рассылки</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'mailing:client_list' %}">Клиенты</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'mailing:message_list' %}">Сообщения</a>
+              </li>
+
+              <!-- Кнопка доступна исключительно роли Менеджера -->
+              {% if user.is_manager %}
+                <li class="nav-item">
+                  <a class="nav-link text-warning fw-bold" href="{% url 'users:user_list' %}">Пользователи</a>
+                </li>
+              {% endif %}
+            {% endif %}
+          </ul>
+
+          <!-- Блок авторизации справа -->
+          <div class="navbar-nav ms-auto align-items-center">
+              {% if user.is_authenticated %}
+                  <span class="nav-item nav-link text-info me-3 small">{{ user.email }}</span>
+                  <a class="btn btn-outline-light btn-sm" href="{% url 'users:logout' %}">Выйти</a>
+              {% else %}
+                  <a class="nav-item nav-link" href="{% url 'users:login' %}">Войти</a>
+                  <a class="nav-item nav-link" href="{% url 'users:register' %}">Регистрация</a>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <div class="container mt-4 mb-5">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
+
